@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<title>Orac</title>
+		<link rel="stylesheet" href="/static/styles.css" type="text/css" />
+	</head>
+	<body>
+		<h1>Orac</h1>
+		{% match message %}
+		{% when Some with (msg) %}
+		<div class="notice">{{msg}}</div>
+		{% when None %}
+		{% endmatch %}
+
+		<form action="/login" method="post">
+			<label>
+				Username
+				<input type="text" name="username" value="{{username|or_empty}}" />
+			</label>
+			<label>
+				Password
+				<input type="password" name="password" />
+			</label>
+			<button type="submit">Login</button>
+		</form>
+	</body>
+</html>

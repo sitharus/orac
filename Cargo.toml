@@ -1,0 +1,27 @@
+[package]
+name = "orac"
+version = "0.1.0"
+authors = ["my name <my@email.address>"]
+edition = "2021"
+
+[dependencies]
+serenity = "0.12"
+regex = "1"
+lazy_static = "1.4.0"
+tokio = { version = "1.26.0", features = ["macros", "rt-multi-thread"] }
+sea-orm = { version = "^0.12.0", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros", "with-chrono", "with-json", "with-uuid" ] }
+sea-orm-migration = "^0.12.0"
+axum = { version="0.7.2" }
+askama = {version = "0.12.1", features = [ "with-axum" ] }
+askama_axum = "0.4.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+serde = {version = "1.0.159", features = ["derive"]}
+reqwest = { version = "0.11.22", features = ["json", "rustls-tls", "rustls-tls-webpki-roots", "serde_json", "tokio-rustls"], default-features = false }
+futures = "0.3.28"
+anyhow = "1.0.75"
+bcrypt = "0.15.0"
+tower-sessions = { version = "0.8.2", features = ["sqlite-store", "deletion-task", "sqlx-store"] }
+tower = "0.4.13"
+time = "0.3.31"
+tower-http = { version = "0.5.0", features = ["fs"] }
+serde_json = "1.0.108"
