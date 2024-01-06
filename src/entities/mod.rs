@@ -2,5 +2,7 @@
 
 pub mod prelude;
 
+pub mod channel;
+pub mod guild;
 pub mod session;
 pub mod user;

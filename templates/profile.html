@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<h1>Profile</h1>
+
+	<form method="post">
+		<label>
+			Name
+			<input type="text" name="name" required value="{{name}}"/>
+		</label>
+		<label>
+			Email Address
+			<input type="email" name="email" required value="{{email}}"/>
+		</label>
+		<label>
+			Discord ID
+			<input type="text" name="discord_id" pattern="^[0-9]+$" value="{{discord_id|string_or_empty}}"/>
+		</label>
+		<button type="submit">Update</button>
+	</form>
+
+
+	<h1>Change Password</h1>
+
+	<form method="post">
+		<label>
+			Current Password
+			<input type="password" name="current_password"/>
+		</label>
+		<label>
+			New Password
+			<input type="password" name="new_password" />
+		</label>
+		<label>
+			Repeat New Password
+			<input type="text" name="repeat_password" />
+		</label>
+
+		<button type="submit">Change</button>
+	</form>
+{% endblock %}

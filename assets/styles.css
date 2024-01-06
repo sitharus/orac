@@ -1,3 +1,166 @@
+:root {
+	--nav-bg: rgb(210, 210, 210);
+
+
+	--primary-button-border: rgb(61, 52, 109);
+	--primary-button-background: rgb(61, 52, 109);
+	--primary-button-background-hover: color-mix(in lch, var(--primary-button-background) 85%, white);
+	--primary-button-color: rgb(252, 251, 255);
+
+}
+
 body {
 	font-family: sans-serif;
+	display: grid;
+	grid-template: "nav body" minmax(100vh, auto) / 250px 1fr;
+	padding: 0;
+	margin: 0;
+}
+
+
+
+main {
+	padding: 3vh 2vw;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+}
+
+label {
+	display: block;
+	font-size: medium;
+	font-weight: 300;
+}
+
+label > input, label > select {
+	display: block;
+	margin-top:0.3rem;
+}
+
+label:has(input), label:has(select) {
+	margin-bottom: 1rem;
+}
+
+textarea {
+	margin-top: 0.3rem;
+	display: block;
+	margin-bottom: 1rem;
+	height: 25lh;
+	font-size: medium;
+	font-weight: 300;
+	padding: 0.4rem;
+}
+
+label > :is(input[type=text], input[type=password], input[type=email]) {
+	height: 1.5lh;
+	width: 35em;
+	font-size: medium;
+}
+
+label > select {
+	font-size: medium;
+	border-radius: 4px;
+	border: 1px solid var(--primary-button-border);
+	background: var(--primary-button-color);
+	color: var(--primary-button-background);
+	appearance: none;
+	width: 12em;
+}
+
+
+label > select:not([multiple]) {
+	padding: 0.5rem;
+	background-image:
+		linear-gradient(45deg, transparent 50%, var(--primary-button-background) 50%),
+		linear-gradient(135deg, var(--primary-button-background) 50%, transparent 50%);
+	background-position:
+		calc(100% - 13px) calc(50% + 2px),
+		calc(100% - 5px) calc(50% - -2px);
+	background-size:
+		8px 8px,
+		8px 8px;
+	background-repeat: no-repeat;
+}
+
+button {
+	flex: 0 0 auto;
+	align-self: flex-start;
+	font-size: medium;
+	padding: 0.5rem 1.5rem;
+	border-radius: 4px;
+	border: 1px solid var(--primary-button-border);
+	background: var(--primary-button-background);
+	color: var(--primary-button-color);
+	font-weight: 550;
+	cursor: pointer;
+}
+
+
+button:hover {
+	background: var(--primary-button-background-hover);
+	cursor: pointer;
+}
+
+button.secondary {
+	background: var(--primary-button-color);
+	color: var(--primary-button-background);
+}
+
+button.secondary:hover {
+	color: var(--primary-button-background-hover);
+}
+
+nav {
+
+	background-color: var(--nav-bg);
+	& ul {
+		padding: 0;
+	}
+
+
+	& li {
+		list-style: none;
+		margin: 0;
+		& a {
+			display: flex;
+			align-items: center;
+			text-decoration: none;
+			color: var(--link-colour);
+			font-weight: 550;
+			height: 3rem;
+			padding: 0 1rem;
+			border-top: 1px solid transparent;
+			border-bottom: 1px solid transparent;
+
+			&.selected {
+				background-color: var(--nav-background-dark);
+				border-top: var(--nav-selected-border);
+				border-bottom: var(--nav-selected-border);
+
+			}
+
+			&:hover {
+				text-decoration: underline;
+				text-decoration-color:  var(--link-underline-colour);
+				text-underline-position: under;
+				background-color: var(--nav-link-hover-background);
+			}
+
+			&.selected svg, &:hover svg {
+				filter: unset;
+			}
+
+
+			& svg {
+				color: var(--link-contrast-color);
+				display: inline-block;
+				margin-right: 0.2rem;
+				margin-left: 0.4rem;
+				filter: grayscale(100%) brightness(120%);
+			}
+		}
+	}
+
 }

@@ -18,7 +18,9 @@ mod channels;
 mod dashboard;
 mod errors;
 mod filters;
+mod guilds;
 mod login;
+mod profile;
 mod session;
 mod templates;
 
@@ -36,7 +38,7 @@ pub async fn webserver(database: Arc<DatabaseConnection>) {
         .layer(
             SessionManagerLayer::new(session_store)
                 .with_secure(false)
-                .with_expiry(Expiry::OnInactivity(Duration::seconds(10))),
+                .with_expiry(Expiry::OnInactivity(Duration::seconds(1200))),
         );
 
     let app = Router::new()
@@ -44,6 +46,10 @@ pub async fn webserver(database: Arc<DatabaseConnection>) {
         .nest_service("/static", ServeDir::new("assets"))
         .route("/login", post(login::login))
         .route("/dashboard", get(dashboard::dashboard))
+        .route("/profile", get(profile::profile).post(profile::submit))
+        .route("/guilds", get(guilds::get).post(guilds::post))
+        .route("/channels", get(channels::get).post(channels::post))
+        .route("/channel/:channel_id", get(channels::get_channel))
         .layer(session_service)
         .with_state(Arc::new(AppState { db: database }));
 
