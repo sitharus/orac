@@ -7,9 +7,9 @@ use axum::{
 use sea_orm::*;
 use serde::Deserialize;
 
-use super::appstate::AppState;
 use super::session::USER_ID_KEY;
 use super::templates::IndexTemplate;
+use super::{appstate::AppState, errors::Error};
 use crate::entities::{prelude::*, *};
 use tower_sessions::Session;
 
@@ -23,7 +23,7 @@ pub async fn login(
     session: Session,
     State(state): State<Arc<AppState>>,
     Form(login_form): Form<LoginForm>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, Error> {
     let connection: &DatabaseConnection = state.db.as_ref();
     let username = login_form.username;
     let user = User::find()
@@ -34,17 +34,18 @@ pub async fn login(
     match user {
         Ok(Some(user)) => match validate_password(&user, &login_form.password, connection).await {
             Ok(true) => {
-                session.insert(USER_ID_KEY, user.id).await.unwrap();
-                Err(Redirect::to("/dashboard"))
+                session.insert(USER_ID_KEY, user.id).await?;
+                Ok(Redirect::to("/dashboard").into_response())
             }
             _ => Ok(IndexTemplate {
                 username: Some(username.into()),
                 message: Some("Invalid password".into()),
-            }),
+            }
+            .into_response()),
         },
         e => {
             eprintln!("{:?}", e);
-            Err(Redirect::to("/"))
+            Ok(Redirect::to("/").into_response())
         }
     }
 }

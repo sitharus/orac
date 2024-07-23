@@ -1,41 +1,46 @@
-use std::env;
 use std::sync::Arc;
+use std::{env, time::Duration};
 
-use lazy_static::lazy_static;
-use regex::Regex;
+use poise::serenity_prelude as serenity;
 
-use serenity::async_trait;
-use serenity::framework::standard::macros::{command, group};
-use serenity::framework::standard::{CommandResult, Configuration, StandardFramework};
-use serenity::json::json;
-use serenity::model::channel::Message;
-use serenity::model::id::ChannelId;
-use serenity::prelude::*;
-
-use reqwest;
-use serde;
-
-use sea_orm::Database;
+use sea_orm::{Database, DatabaseConnection};
 use sea_orm_migration::prelude::*;
 
+mod commands;
 mod entities;
 mod migrator;
 mod web;
 
-#[group]
-#[commands(ping, reset_channel, catfact)]
-struct General;
+type Error = Box<dyn std::error::Error + Send + Sync>;
+type Context<'a> = poise::Context<'a, Data, Error>;
 
-struct Handler {}
-
-#[derive(serde::Deserialize)]
-struct CatFact {
-    fact: String,
+pub struct Data {
+    pub db: Arc<DatabaseConnection>,
 }
 
-#[async_trait]
-impl EventHandler for Handler {
-    async fn message(&self, _ctx: Context, _msg: Message) {}
+#[derive(serde::Deserialize, Clone)]
+pub struct Config {
+    discord_token: String,
+    client_secret: String,
+    client_id: String,
+    redirect_url: String,
+}
+
+async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
+    // This is our custom error handler
+    // They are many errors that can occur, so we only handle the ones we want to customize
+    // and forward the rest to the default handler
+    match error {
+        poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
+        poise::FrameworkError::Command { error, ctx, .. } => {
+            println!("Error in command `{}`: {:?}", ctx.command().name, error,);
+        }
+        error => {
+            if let Err(e) = poise::builtins::on_error(error).await {
+                println!("Error while handling error: {}", e)
+            }
+        }
+    }
 }
 
 #[tokio::main]
@@ -52,133 +57,70 @@ async fn main() {
         return;
     }
 
+    let config_str = std::fs::read_to_string("bot_config.toml")
+        .expect("Could not read config from bot_config.toml");
+    let config = toml::from_str::<Config>(config_str.as_ref()).expect("Could not parse config!");
+
     let dbcell = Arc::new(db);
+    // will dbcell ever get to 0 refs? I think so because this will be moved
+    // to the closure, then released once that exits. But it doesn't really
+    // matter because the db connection pretty much has 'static lifetime.
+    let poise_cell = dbcell.clone();
 
-    let web_handle = tokio::spawn(async move { web::webserver(dbcell).await });
-    match env::var("DISCORD_TOKEN") {
-        Ok(token) => {
-            let framework = StandardFramework::new().group(&GENERAL_GROUP);
-            framework.configure(Configuration::new().prefix("~"));
+    // FrameworkOptions contains all of poise's configuration option in one struct
+    // Every option can be omitted to use its default value
+    let options = poise::FrameworkOptions {
+        commands: vec![
+            commands::help(),
+            commands::catfact(),
+            commands::ping(),
+            commands::reset_channel(),
+        ],
+        prefix_options: poise::PrefixFrameworkOptions {
+            prefix: Some("~".into()),
+            edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(
+                Duration::from_secs(3600),
+            ))),
+            ..Default::default()
+        },
+        // The global error handler for all error cases that may occur
+        on_error: |error| Box::pin(on_error(error)),
+        // Enforce command checks even for owners (enforced by default)
+        // Set to true to bypass checks, which is useful for testing
+        skip_checks_for_owners: false,
+        event_handler: |_ctx, event, _framework, _data| {
+            Box::pin(async move {
+                println!(
+                    "Got an event in event handler: {:?}",
+                    event.snake_case_name()
+                );
+                Ok(())
+            })
+        },
+        ..Default::default()
+    };
 
-            // Login with a bot token from the environment
-            let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
-            let handler = Handler {};
+    let framework = poise::Framework::builder()
+        .setup(move |ctx, _ready, framework| {
+            Box::pin(async move {
+                println!("Logged in as {}", _ready.user.name);
+                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+                Ok(Data { db: poise_cell })
+            })
+        })
+        .options(options)
+        .build();
 
-            let mut client = Client::builder(token, intents)
-                .event_handler(handler)
-                .framework(framework)
-                .await
-                .expect("Error creating client");
+    let web_config = config.clone();
+    let web_handle = tokio::spawn(async move { web::webserver(dbcell, web_config).await });
 
-            // start listening for events by starting a single shard
-            if let Err(why) = client.start().await {
-                println!("An error occurred while running the client: {:?}", why);
-            }
-            tokio::join!(web_handle).0.unwrap();
-        }
-        Err(_) => {
-            tokio::join!(web_handle).0.unwrap();
-        }
-    }
-}
+    let intents =
+        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
-#[command]
-async fn catfact(ctx: &Context, msg: &Message) -> CommandResult {
-    println!("Fetching cat fact!");
-    let client = reqwest::Client::new();
-    let res = client
-        .get("https://catfact.ninja/fact")
-        .header(reqwest::header::ACCEPT, "application/json")
-        .send()
-        .await?;
+    let client = serenity::ClientBuilder::new(config.discord_token, intents)
+        .framework(framework)
+        .await;
+    client.unwrap().start().await.unwrap();
 
-    let response = res.json::<CatFact>().await?;
-
-    msg.reply(ctx, response.fact).await?;
-
-    Ok(())
-}
-
-#[command]
-async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.reply(ctx, "Pong!").await?;
-
-    Ok(())
-}
-
-#[command]
-async fn reset_channel(ctx: &Context, msg: &Message) -> CommandResult {
-    lazy_static! {
-        static ref CHANNEL_MATCH: Regex = Regex::new(r"<#([0-9]+)>").unwrap();
-    }
-
-    let channel_id = CHANNEL_MATCH.captures(&msg.content).unwrap();
-    match channel_id.get(1) {
-        Some(id) => {
-            let channel_id_r = id.as_str().parse::<ChannelId>().unwrap();
-            let channel_info = ctx.http.get_channel(channel_id_r).await.unwrap();
-            let audit_message = format!("Channel reset requested by #<{}>", msg.author.id);
-            match channel_info.guild() {
-                Some(channel) => {
-                    let new_name = format!("new_{}", channel.name);
-
-                    let options = json!({
-                        "name": new_name,
-                        "type": channel.kind,
-                        "topic": channel.topic,
-                        "nsfw": channel.nsfw,
-                        "parent_id": channel.parent_id.unwrap(),
-                        "permission_overwrites": channel.permission_overwrites,
-                        "position": channel.position,
-
-                    });
-
-                    println!("{:?}", channel.guild_id);
-                    let options_obj = options.as_object().unwrap();
-                    let new_channel_result = ctx
-                        .http
-                        .create_channel(channel.guild_id, &options_obj, Some(&audit_message))
-                        .await;
-
-                    match new_channel_result {
-                        Ok(new_channel) => {
-                            let rename = json!({
-                                "name": channel.name
-                            });
-                            let rename_obj = rename.as_object().unwrap();
-                            ctx.http
-                                .delete_channel(channel_id_r, Some(&audit_message))
-                                .await?;
-                            ctx.http
-                                .edit_channel(new_channel.id, &rename_obj, Some(&audit_message))
-                                .await?;
-                        }
-                        Err(e) => {
-                            msg.reply(
-                                ctx,
-                                format!("Resetting #<{}> failed! {:?}", channel_id_r, e),
-                            )
-                            .await?;
-                        }
-                    }
-                }
-                None => {
-                    msg.reply(
-                        ctx,
-                        format!("#<{}> is not a channel I can reset", channel_id_r),
-                    )
-                    .await?;
-                }
-            }
-        }
-        None => {
-            msg.reply(
-                ctx,
-                "I could not find a channel in your message. Usage ~reset_channel #channel",
-            )
-            .await?;
-        }
-    }
-
-    Ok(())
+    tokio::join!(web_handle).0.unwrap();
 }

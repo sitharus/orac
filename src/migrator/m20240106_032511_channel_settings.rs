@@ -6,23 +6,19 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
-        todo!();
-
         manager
-            .create_table(
-                Table::create()
-                    .table(Post::Table)
-                    .if_not_exists()
-                    .col(
-                        ColumnDef::new(Post::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(ColumnDef::new(Post::Title).string().not_null())
-                    .col(ColumnDef::new(Post::Text).string().not_null())
+            .alter_table(
+                Table::alter()
+                    .table(Channel::Table)
+                    .add_column_if_not_exists(ColumnDef::new(Channel::ResetDay).small_integer())
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Channel::Table)
+                    .add_column_if_not_exists(ColumnDef::new(Channel::ResetMessage).text())
                     .to_owned(),
             )
             .await
@@ -30,18 +26,21 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         // Replace the sample below with your own migration scripts
-        todo!();
-
         manager
-            .drop_table(Table::drop().table(Post::Table).to_owned())
+            .alter_table(
+                Table::alter()
+                    .table(Channel::Table)
+                    .drop_column(Channel::ResetDay)
+                    .drop_column(Channel::ResetMessage)
+                    .to_owned(),
+            )
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Post {
+enum Channel {
     Table,
-    Id,
-    Title,
-    Text,
+    ResetDay,
+    ResetMessage,
 }
