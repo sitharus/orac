@@ -8,6 +8,7 @@ use sea_orm_migration::prelude::*;
 
 mod commands;
 mod entities;
+mod events;
 mod migrator;
 mod web;
 
@@ -57,6 +58,8 @@ async fn main() {
         return;
     }
 
+    tracing_subscriber::fmt::init();
+
     let config_str = std::fs::read_to_string("bot_config.toml")
         .expect("Could not read config from bot_config.toml");
     let config = toml::from_str::<Config>(config_str.as_ref()).expect("Could not parse config!");
@@ -88,14 +91,8 @@ async fn main() {
         // Enforce command checks even for owners (enforced by default)
         // Set to true to bypass checks, which is useful for testing
         skip_checks_for_owners: false,
-        event_handler: |_ctx, event, _framework, _data| {
-            Box::pin(async move {
-                println!(
-                    "Got an event in event handler: {:?}",
-                    event.snake_case_name()
-                );
-                Ok(())
-            })
+        event_handler: |ctx, event, framework, data| {
+            Box::pin(events::handle_event(ctx, event, framework, data))
         },
         ..Default::default()
     };
@@ -117,10 +114,11 @@ async fn main() {
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
-    let client = serenity::ClientBuilder::new(config.discord_token, intents)
+    let mut client = serenity::ClientBuilder::new(config.discord_token, intents)
         .framework(framework)
-        .await;
-    client.unwrap().start().await.unwrap();
+        .await
+        .unwrap();
+    client.start().await.unwrap();
 
     tokio::join!(web_handle).0.unwrap();
 }

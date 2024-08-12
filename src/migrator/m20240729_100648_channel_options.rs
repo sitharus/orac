@@ -12,30 +12,36 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(Channel::Table)
-                    .add_column_if_not_exists(ColumnDef::new(Channel::ResetDay).small_integer())
+                    .drop_column(Channel::ResetDay)
                     .to_owned(),
             )
             .await?;
+
         manager
             .alter_table(
                 Table::alter()
                     .table(Channel::Table)
-                    .add_column_if_not_exists(ColumnDef::new(Channel::ResetMessage).text())
+                    .add_column(ColumnDef::new(Channel::ResetSchedule).text())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Channel::Table)
+                    .add_column(
+                        ColumnDef::new(Channel::AllowReset)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
                     .to_owned(),
             )
             .await
     }
 
-    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
-        manager
-            .alter_table(
-                Table::alter()
-                    .table(Channel::Table)
-                    .drop_column(Channel::ResetDay)
-                    .drop_column(Channel::ResetMessage)
-                    .to_owned(),
-            )
-            .await
+    async fn down(&self, _manager: &SchemaManager) -> Result<(), DbErr> {
+        Err(DbErr::Migration("Cannot downgrade from this!".into()))
     }
 }

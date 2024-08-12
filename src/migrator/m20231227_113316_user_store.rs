@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+use super::entities::User;
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -26,10 +28,4 @@ impl MigrationTrait for Migration {
             )
             .await
     }
-}
-
-#[derive(DeriveIden)]
-enum User {
-    Table,
-    DiscordId,
 }

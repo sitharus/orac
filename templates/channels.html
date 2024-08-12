@@ -2,52 +2,22 @@
 
 {% block content %}
 	<h1>Managed Channels</h1>
+	<a href="/guilds/{{guild_id}}/add_channel">Add Channel</a>
 
 	<table>
 		<thead>
 			<tr>
-				<th>Guild</th><th>Channel</th><th>Features</th><th></th>
+				<th>Channel</th><th>Reset</th><th></th>
 			</tr>
 		</thead>
 		<tbody>
 	{% for channel in channels %}
 		<tr>
-			<td>
-				{% match guild_map.get(channel.guild_id) %}
-				{% when Some with (g) %}{{g.name|or_else("No guild name")}}
-				{% when None %}
-				None?
-				{% endmatch %}
-
-			</td>
 			<td>{{channel.name|or_else("No channel name")}}</td>
-			<td>...</td>
-			<td><a href="/channel/{{channel.id}}">Manage</a></td>
+			<td>{% match channel.allow_reset %}{% when true %}Yes{% else %}No{% endmatch %}</td>
+			<td><a href="/guilds/{{guild_id}}/channel/{{channel.id}}">Manage</a></td>
 		</tr>
 	{% endfor %}
 		</tbody>
 	</table>
-
-	<h1>Add Channel</h1>
-
-	<form method="post">
-		<label>
-			Guild
-			<select name="guild_id">
-				{% for guild in guilds %}
-					<option value="{{guild.id}}">{{guild.name|or_empty}}</option>
-				{% endfor %}
-			</select>
-		</label>
-		<label>
-			Channel Id
-			<input type="text" name="channel_id" />
-		</label>
-		<label>
-			Name
-			<input type="text" name="Name" />
-		</label>
-
-		<button type="submit">Add</button>
-	</form>
 {% endblock %}

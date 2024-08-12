@@ -1,11 +1,27 @@
 :root {
-	--nav-bg: rgb(210, 210, 210);
+	--poppy: #E13A3D;
+	--orange: #F77C43;
+	--vanilla: #E7E8AB;
+	--pistachio: #87C987;
+	--columbia-blue: #BCE0F5;
+
+
+	--text-colour: black;
+	--inverse-text-colour: white;
+	--nav-bg: var(--orange);
+	--main-bg: var(--columbia-blue);
+
 
 
 	--primary-button-border: rgb(61, 52, 109);
 	--primary-button-background: rgb(61, 52, 109);
 	--primary-button-background-hover: color-mix(in lch, var(--primary-button-background) 85%, white);
 	--primary-button-color: rgb(252, 251, 255);
+
+	--nav-link-hover-background: color-mix(in lch, var(--nav-bg) 85%, var(--inverse-text-colour));
+
+	--link-colour: color-mix(in lch, var(--text-colour) 80%, var(--columbia-blue));
+	--link-underline-colour: var(--poppy);
 
 }
 
@@ -15,6 +31,8 @@ body {
 	grid-template: "nav body" minmax(100vh, auto) / 250px 1fr;
 	padding: 0;
 	margin: 0;
+	background-color: var(--main-bg);
+	color: var(--text);
 }
 
 
@@ -112,6 +130,10 @@ button.secondary:hover {
 	color: var(--primary-button-background-hover);
 }
 
+img.guild-logo {
+	border-radius: 50%;
+}
+
 nav {
 
 	background-color: var(--nav-bg);
@@ -133,6 +155,12 @@ nav {
 			padding: 0 1rem;
 			border-top: 1px solid transparent;
 			border-bottom: 1px solid transparent;
+
+			& img {
+				margin-right: 0.5em;
+				display: inline-block;
+			}
+
 
 			&.selected {
 				background-color: var(--nav-background-dark);

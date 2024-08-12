@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use poise::serenity_prelude as serenity;
 use sea_orm::DatabaseConnection;
 
 use crate::Config;
@@ -8,4 +9,5 @@ use crate::Config;
 pub struct AppState {
     pub db: Arc<DatabaseConnection>,
     pub config: Config,
+    pub discord: Arc<serenity::http::Http>,
 }

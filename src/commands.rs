@@ -53,7 +53,12 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 /// Resets a channel by deleting and re-creating it
-#[poise::command(slash_command, owners_only, hide_in_help)]
+#[poise::command(
+    slash_command,
+    required_permissions = "MANAGE_CHANNELS",
+    default_member_permissions = "MANAGE_CHANNELS",
+    hide_in_help
+)]
 pub async fn reset_channel(
     ctx: Context<'_>,
 

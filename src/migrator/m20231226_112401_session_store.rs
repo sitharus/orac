@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+use super::entities::Session;
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -29,12 +31,4 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(Session::Table).to_owned())
             .await
     }
-}
-
-#[derive(DeriveIden)]
-enum Session {
-    Table,
-    Id,
-    Data,
-    ExpiryDate,
 }

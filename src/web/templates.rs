@@ -4,8 +4,16 @@ use super::filters;
 use crate::entities::*;
 use askama::Template;
 
-pub struct Common<'a> {
-    pub page_title: &'a str,
+pub struct GuildItem {
+    pub name: String,
+    pub id: i32,
+    pub logo_url: Option<String>,
+    pub selected: bool,
+}
+
+pub struct Common {
+    pub page_title: String,
+    pub guilds: Vec<GuildItem>,
 }
 
 #[derive(Template)]
@@ -17,31 +25,37 @@ pub struct IndexTemplate {
 
 #[derive(Template)]
 #[template(path = "dashboard.html")]
-pub struct Dashboard<'a> {
-    pub common: Common<'a>,
+pub struct Dashboard {
+    pub common: Common,
 }
 
 #[derive(Template)]
 #[template(path = "profile.html")]
-pub struct Profile<'a> {
-    pub common: Common<'a>,
+pub struct Profile {
+    pub common: Common,
     pub name: String,
     pub email: String,
-    pub discord_id: Option<i64>,
 }
 
 #[derive(Template)]
-#[template(path = "guilds.html")]
-pub struct Guilds<'a> {
-    pub common: Common<'a>,
-    pub guilds: Vec<guild::Model>,
+#[template(path = "guild.html")]
+pub struct GuildPage {
+    pub common: Common,
+    pub guild: guild::Model,
 }
 
 #[derive(Template)]
 #[template(path = "channels.html")]
-pub struct Channels<'a> {
-    pub common: Common<'a>,
+pub struct Channels {
+    pub common: Common,
     pub channels: Vec<channel::Model>,
-    pub guilds: Vec<guild::Model>,
-    pub guild_map: HashMap<i32, guild::Model>,
+    pub guild_id: i32,
+}
+
+#[derive(Template)]
+#[template(path = "add_channel.html")]
+pub struct AddChannel {
+    pub common: Common,
+    pub channels: Vec<channel::Model>,
+    pub guild_id: i32,
 }

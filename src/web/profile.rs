@@ -13,38 +13,33 @@ use sea_orm::*;
 
 use super::{
     appstate::AppState,
-    session::user_id,
-    templates::{Common, Profile},
+    errors,
+    session::{user_id, user_id_or_redirect},
+    templates::Profile,
+    util::get_common,
 };
 
 #[derive(Deserialize)]
 pub struct ProfileForm {
     name: Option<String>,
     email: Option<String>,
-    discord_id: Option<i64>,
-    current_password: Option<String>,
-    new_password: Option<String>,
-    repeat_password: Option<String>,
 }
 
 pub async fn profile(
     session: Session,
     State(state): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, Redirect> {
-    let id = user_id(session).await?;
+) -> Result<impl IntoResponse, errors::Error> {
+    let id = user_id(&session).await?;
     let user = User::find_by_id(id)
         .one(state.db.as_ref())
-        .await
-        .map_err(|_| Redirect::to("/"))?
-        .expect("Managed to get a user id that doesn't exist?");
+        .await?
+        .ok_or(anyhow::anyhow!("Your user doesn't exist? Clever!"))?;
 
+    let common = get_common("Profile", None, &state, &session).await?;
     let page = Profile {
-        common: Common {
-            page_title: "Profile",
-        },
+        common,
         name: user.name,
         email: user.email,
-        discord_id: user.discord_id,
     };
     Ok(page)
 }
@@ -54,25 +49,19 @@ pub async fn submit(
     State(state): State<Arc<AppState>>,
     Form(update): Form<ProfileForm>,
 ) -> Result<impl IntoResponse, Redirect> {
-    let id = user_id(session).await?;
+    let id = user_id_or_redirect(session).await?;
     let user = User::find_by_id(id)
         .one(state.db.as_ref())
         .await
         .map_err(|_| Redirect::to("/"))?
         .expect("Managed to get a user id that doesn't exist?");
 
-    match update.current_password {
-        Some(_) => Ok(Redirect::to("/profile")),
-        None => {
-            let mut user = user.into_active_model();
-            user.email = Set(update.email.expect("Email is required"));
-            user.name = Set(update.name.expect("Name is required"));
-            user.discord_id = Set(update.discord_id);
-            user.update(state.db.as_ref())
-                .await
-                .expect("Db update failed");
+    let mut user = user.into_active_model();
+    user.email = Set(update.email.expect("Email is required"));
+    user.name = Set(update.name.expect("Name is required"));
+    user.update(state.db.as_ref())
+        .await
+        .expect("Db update failed");
 
-            Ok(Redirect::to("/profile"))
-        }
-    }
+    Ok(Redirect::to("/profile"))
 }

@@ -11,16 +11,6 @@
 		{% when None %}
 		{% endmatch %}
 
-		<form action="/login" method="post">
-			<label>
-				Username
-				<input type="text" name="username" value="{{username|or_empty}}" />
-			</label>
-			<label>
-				Password
-				<input type="password" name="password" />
-			</label>
-			<button type="submit">Login</button>
-		</form>
+		<a href="/oauth/start">Login with Discord</a>
 	</body>
 </html>

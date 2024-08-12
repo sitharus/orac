@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<h1>
+		{% match guild.name %}
+			{% when Some with (name) %}
+				{{name}}
+			{% when None %}
+				{{guild.id}}
+		{% endmatch %}
+	</h1>
+	<p>Details here!</p>
+
+{% endblock %}

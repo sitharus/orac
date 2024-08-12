@@ -4,5 +4,6 @@ pub mod prelude;
 
 pub mod channel;
 pub mod guild;
+pub mod guild_access;
 pub mod session;
 pub mod user;

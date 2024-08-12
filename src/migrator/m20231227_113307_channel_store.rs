@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+use super::entities::{Channel, Guild};
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -59,21 +61,4 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(Channel::Table).to_owned())
             .await
     }
-}
-
-#[derive(DeriveIden)]
-enum Guild {
-    Table,
-    Id,
-    DiscordId,
-    Name,
-}
-
-#[derive(DeriveIden)]
-enum Channel {
-    Table,
-    Id,
-    GuildId,
-    DiscordId,
-    Name,
 }

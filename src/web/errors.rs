@@ -1,27 +1,37 @@
 use axum::{
     http::StatusCode,
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Redirect, Response},
 };
 use oauth2::{basic::BasicErrorResponseType, RequestTokenError, StandardErrorResponse};
 
-pub struct Error(anyhow::Error);
+pub enum Error {
+    Anyhow(anyhow::Error),
+    LoggedOut,
+    Forbidden,
+}
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        let body = format!("{:?}", self.0);
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+        match self {
+            Self::Anyhow(err) => {
+                let body = format!("{:?}", err);
+                (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+            }
+            Self::LoggedOut => Redirect::to("/").into_response(),
+            Self::Forbidden => (StatusCode::FORBIDDEN, "".to_string()).into_response(),
+        }
     }
 }
 
 impl From<anyhow::Error> for Error {
     fn from(value: anyhow::Error) -> Self {
-        Self(value)
+        Self::Anyhow(value)
     }
 }
 
 impl From<tower_sessions::session::Error> for Error {
     fn from(value: tower_sessions::session::Error) -> Self {
-        Self(anyhow::anyhow!(value))
+        Self::Anyhow(anyhow::anyhow!(value))
     }
 }
 
@@ -40,18 +50,18 @@ impl
             StandardErrorResponse<BasicErrorResponseType>,
         >,
     ) -> Self {
-        Self(anyhow::anyhow!(value))
+        Self::Anyhow(anyhow::anyhow!(value))
     }
 }
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
-        Self(anyhow::anyhow!(value))
+        Self::Anyhow(anyhow::anyhow!(value))
     }
 }
 
 impl From<sea_orm::DbErr> for Error {
     fn from(value: sea_orm::DbErr) -> Self {
-        Self(anyhow::anyhow!(value))
+        Self::Anyhow(anyhow::anyhow!(value))
     }
 }

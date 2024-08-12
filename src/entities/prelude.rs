@@ -2,5 +2,6 @@
 
 pub use super::channel::Entity as Channel;
 pub use super::guild::Entity as Guild;
+pub use super::guild_access::Entity as GuildAccess;
 pub use super::session::Entity as Session;
 pub use super::user::Entity as User;

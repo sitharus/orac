@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+use super::entities::User;
+
 pub struct Migration;
 
 impl MigrationName for Migration {
@@ -37,13 +39,4 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(User::Table).to_owned())
             .await
     }
-}
-
-#[derive(Iden)]
-pub enum User {
-    Table,
-    Id,
-    Name,
-    Password,
-    Email,
 }

@@ -9,17 +9,25 @@ pub struct Model {
     pub id: i32,
     pub name: Option<String>,
     pub discord_id: i64,
+    pub logo_url: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(has_many = "super::channel::Entity")]
     Channel,
+    #[sea_orm(has_many = "super::guild_access::Entity")]
+    GuildAccess,
 }
 
 impl Related<super::channel::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Channel.def()
+    }
+}
+impl Related<super::guild_access::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::GuildAccess.def()
     }
 }
 

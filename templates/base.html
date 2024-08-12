@@ -7,8 +7,24 @@
 	<body>
 		<nav>
 			<ul>
-				<li><a href="/guilds">Guilds</a></li>
-				<li><a href="/channels">Channels</a></li>
+				{% for guild in common.guilds %}
+					<li class="guild {% if guild.selected %}selected{% endif %}">
+						<a href="/guild/{{guild.id}}">
+							{% match guild.logo_url -%}
+								{% when Some with (url) -%}
+									<img class="guild-logo" src="{{url}}" width="32" height="32" >
+								 {% when None -%}
+							{% endmatch -%}
+							{{guild.name}}
+
+						</a>
+						{% if guild.selected %}
+							<ul>
+								<li><a href="/guild/{{guild.id}}/channels">Channels</a></li>
+							</ul>
+						{% endif %}
+					</li>
+				{% endfor %}
 				<li><a href="/profile">Profile</a></li>
 			</ul>
 		</nav>

@@ -10,6 +10,9 @@ pub struct Model {
     pub name: Option<String>,
     pub discord_id: i64,
     pub guild_id: i32,
+    pub reset_message: Option<String>,
+    pub reset_schedule: Option<String>,
+    pub allow_reset: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
