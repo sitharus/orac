@@ -10,8 +10,8 @@ use super::{
     appstate::AppState, errors::Error, session::user_id, templates::GuildPage, util::get_common,
 };
 
-use crate::entities::guild;
-use crate::entities::prelude::Guild;
+use crate::entities::channel;
+use crate::entities::prelude::{Channel, Guild};
 use sea_orm::*;
 
 pub async fn get(
@@ -36,5 +36,15 @@ pub async fn get(
     )
     .await?;
 
-    Ok(GuildPage { common, guild })
+    let managed_channels = Channel::find()
+        .filter(channel::Column::GuildId.eq(guild.id))
+        .order_by(channel::Column::Name, Order::Asc)
+        .all(state.db.as_ref())
+        .await?;
+
+    Ok(GuildPage {
+        common,
+        guild,
+        managed_channels,
+    })
 }

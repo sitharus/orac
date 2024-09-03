@@ -12,7 +12,7 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(User::Table)
-                    .add_column_if_not_exists(ColumnDef::new(User::DiscordId).big_integer())
+                    .add_column_if_not_exists(ColumnDef::new(User::DiscordId).string())
                     .to_owned(),
             )
             .await

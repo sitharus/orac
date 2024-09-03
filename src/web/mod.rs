@@ -1,6 +1,6 @@
 use axum::{
     response::{IntoResponse, Redirect},
-    routing::{get, post},
+    routing::get,
     Router,
 };
 use sea_orm::DatabaseConnection;
@@ -43,9 +43,10 @@ pub async fn webserver(database: Arc<DatabaseConnection>, config: Config) {
         .route("/dashboard", get(dashboard::dashboard))
         .route("/profile", get(profile::profile).post(profile::submit))
         .route("/guild/:guild_id", get(guilds::get))
+        .route("/guild/:guild_id/channels", get(channels::get))
         .route(
-            "/guild/:guild_id/channels",
-            get(channels::get).post(channels::post),
+            "/guild/:guild_id/channel/add",
+            get(channels::add).post(channels::add_post),
         )
         .layer(
             SessionManagerLayer::new(session_store)

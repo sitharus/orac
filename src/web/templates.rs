@@ -42,6 +42,7 @@ pub struct Profile {
 pub struct GuildPage {
     pub common: Common,
     pub guild: guild::Model,
+    pub managed_channels: Vec<channel::Model>,
 }
 
 #[derive(Template)]
@@ -56,6 +57,6 @@ pub struct Channels {
 #[template(path = "add_channel.html")]
 pub struct AddChannel {
     pub common: Common,
-    pub channels: Vec<channel::Model>,
+    pub channels: Vec<serenity::model::channel::GuildChannel>,
     pub guild_id: i32,
 }

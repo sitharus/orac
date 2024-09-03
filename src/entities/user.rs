@@ -10,7 +10,7 @@ pub struct Model {
     pub name: String,
     pub email: String,
     pub password: String,
-    pub discord_id: Option<i64>,
+    pub discord_id: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

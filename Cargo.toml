@@ -30,3 +30,5 @@ poise = "0.6.1"
 toml = "0.8.15"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
+cron = "0.12.1"
+chrono = "0.4.38"

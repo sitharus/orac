@@ -2,5 +2,32 @@
 
 {% block content %}
 	<h1>Add Managed Channel</h1>
+	<form method="POST">
+		<label>
+			Channel
+			<select name="channel">
+				{% for channel in channels %}
+					<option value="{{channel.id}}">{{channel.name}}</option>
+				{% endfor %}
+			</select>
+		</label>
+		<label>
+			<input type="checkbox" name="auto_reset">
+			Enable Auto Reset
+		</label>
+		<label>
+			Auto Reset Cron
+			<input type="text" name="auto_reset_cron">
+		</label>
+		<label for="auto_reset_message">
+			Auto Reset Message
+		</label>
+		<textarea name="auto_reset_message">
+		</textarea>
+
+		<button type="submit">Add Channel</button>
+			
+	</form>
 	<p>Form here</p>
+	
 {% endblock %}

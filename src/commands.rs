@@ -1,6 +1,10 @@
+use crate::entities::channel;
+use crate::entities::prelude::Channel;
 use crate::{Context, Error};
 use ::serenity::builder::Builder;
 use poise::serenity_prelude as serenity;
+use sea_orm::*;
+use sea_query::Expr;
 
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
@@ -85,6 +89,15 @@ pub async fn reset_channel(
                     http,
                     serenity::builder::EditChannel::new().name(guild_channel.name),
                 )
+                .await?;
+
+            Channel::update_many()
+                .col_expr(
+                    channel::Column::DiscordId,
+                    Expr::value(result.id.to_string()),
+                )
+                .filter(channel::Column::DiscordId.eq(guild_channel.id.to_string()))
+                .exec(ctx.data().db.as_ref())
                 .await?;
 
             ctx.say(format!("<#{}> has been reset!", result.id)).await?;

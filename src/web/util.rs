@@ -59,3 +59,24 @@ pub async fn check_guild_access(
         _ => Err(errors::Error::Forbidden),
     }
 }
+
+pub async fn get_guild_for_user(
+    guild_id: i32,
+    app_state: &AppState,
+    session: &Session,
+) -> Result<guild::Model, errors::Error> {
+    let user_id = user_id(session).await?;
+    let guild_access = GuildAccess::find()
+        .filter(guild_access::Column::GuildId.eq(guild_id))
+        .filter(guild_access::Column::UserId.eq(user_id))
+        .count(app_state.db.as_ref())
+        .await?;
+
+    match guild_access {
+        1 => Guild::find_by_id(guild_id)
+            .one(app_state.db.as_ref())
+            .await?
+            .ok_or(errors::Error::Forbidden),
+        _ => Err(errors::Error::Forbidden),
+    }
+}

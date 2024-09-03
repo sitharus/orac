@@ -9,6 +9,12 @@
 				{{guild.id}}
 		{% endmatch %}
 	</h1>
-	<p>Details here!</p>
+	<h2>Managed Channels</h2>
+	<ul>
+	{% for channel in managed_channels %}
+		<li><a href="/guild/{{guild.id}}/channel/{{channel.id}}/">{{channel.name|or_else(channel.id)}}</a></li>
+	{% endfor %}
+	</ul>
+	<a href="/guild/{{guild.id}}/channel/add">Add Channel</a>
 
 {% endblock %}

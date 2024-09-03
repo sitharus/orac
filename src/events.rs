@@ -15,7 +15,7 @@ pub async fn handle_event(
 ) -> Result<(), Error> {
     match event {
         serenity::FullEvent::GuildCreate { guild, is_new: _ } => {
-            let guild_id: i64 = guild.id.into();
+            let guild_id: String = guild.id.to_string();
 
             let record = guild::ActiveModel {
                 id: ActiveValue::NotSet,

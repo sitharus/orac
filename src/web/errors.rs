@@ -1,3 +1,5 @@
+use std::{num::ParseIntError, str::FromStr};
+
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Redirect, Response},
@@ -62,6 +64,18 @@ impl From<reqwest::Error> for Error {
 
 impl From<sea_orm::DbErr> for Error {
     fn from(value: sea_orm::DbErr) -> Self {
+        Self::Anyhow(anyhow::anyhow!(value))
+    }
+}
+
+impl From<serenity::Error> for Error {
+    fn from(value: serenity::Error) -> Self {
+        Self::Anyhow(anyhow::anyhow!(value))
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(value: ParseIntError) -> Self {
         Self::Anyhow(anyhow::anyhow!(value))
     }
 }

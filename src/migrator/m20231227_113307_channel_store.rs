@@ -21,7 +21,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Guild::Name).string())
-                    .col(ColumnDef::new(Guild::DiscordId).big_integer().not_null())
+                    .col(ColumnDef::new(Guild::DiscordId).string().not_null())
                     .to_owned(),
             )
             .await?;
@@ -39,7 +39,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Channel::Name).string())
-                    .col(ColumnDef::new(Channel::DiscordId).big_integer().not_null())
+                    .col(ColumnDef::new(Channel::DiscordId).string().not_null())
                     .col(ColumnDef::new(Channel::GuildId).integer().not_null())
                     .foreign_key(
                         ForeignKey::create()

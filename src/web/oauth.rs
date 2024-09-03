@@ -88,19 +88,16 @@ pub async fn oauth_login(
         .one(connection)
         .await?;
 
-    let discord_user_id: i64 = me
-        .id
-        .parse()
-        .map_err(|_| anyhow::anyhow!("Could not parse discord user id"))?;
+    let discord_user_id = Some(me.id.clone());
 
     session.insert("OAUTH_TOKEN", unwrapped).await?;
     match user {
         Some(u) => {
             session.insert(USER_ID_KEY, u.id).await?;
             session.insert(DISCORD_USER_ID_KEY, me.id).await?;
-            if u.discord_id != Some(discord_user_id) {
+            if u.discord_id != discord_user_id {
                 let mut user_model: user::ActiveModel = u.into();
-                user_model.discord_id = Set(Some(discord_user_id));
+                user_model.discord_id = Set(discord_user_id);
                 user_model.update(state.db.as_ref()).await?;
             }
 
@@ -141,16 +138,12 @@ pub async fn select_guild(
         .await?;
 
     for guild in user_guilds {
-        let guild_id: i64 = guild
-            .id
-            .parse()
-            .map_err(|_| anyhow::anyhow!("Could not convert guild id to u64!"))?;
+        let guild_id = guild.id;
         if let Some(guild_record) = bot_guilds.iter().find(|&g| g.discord_id == guild_id) {
             let user_details = state
                 .discord
-                .get_member(guild_id.unsigned_abs().into(), discord_user_id.into())
-                .await
-                .map_err(|_| anyhow::anyhow!("Could not fetch user details"))?;
+                .get_member(guild_id.parse()?, discord_user_id.into())
+                .await?;
 
             let record = guild_access::ActiveModel {
                 user_id: Set(user_id),
